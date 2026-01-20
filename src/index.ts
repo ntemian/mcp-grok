@@ -5,8 +5,8 @@
  * Provides Claude Code access to xAI's Grok API
  *
  * Models available:
- * - grok-3: Latest and most capable
- * - grok-3-fast: Optimized for speed
+ * - grok-4-1-fast-reasoning: Latest and most capable
+ * - grok-4-1-fast-non-reasoning: Optimized for speed
  * - grok-2: Previous generation
  * - grok-2-vision: Vision capabilities
  *
@@ -54,7 +54,7 @@ server.tool(
       role: z.enum(['system', 'user', 'assistant']),
       content: z.string(),
     })).describe('Array of messages in the conversation'),
-    model: z.string().optional().describe('Model: grok-3 (default), grok-3-fast, grok-2, grok-2-vision'),
+    model: z.string().optional().describe('Model: grok-4-1-fast-reasoning (default), grok-4-1-fast-non-reasoning, grok-2, grok-2-vision'),
     temperature: z.number().optional().describe('Sampling temperature 0-2. Default: 1'),
     max_tokens: z.number().optional().describe('Maximum tokens to generate'),
   },
@@ -62,7 +62,7 @@ server.tool(
     try {
       const { messages, model, temperature, max_tokens } = params;
       const response = await grok.chat.completions.create({
-        model: model || 'grok-3',
+        model: model || 'grok-4-1-fast-reasoning',
         messages,
         temperature: temperature ?? 1,
         max_tokens,
@@ -100,7 +100,7 @@ server.tool(
   {
     prompt: z.string().describe('The prompt to send'),
     system: z.string().optional().describe('Optional system message'),
-    model: z.string().optional().describe('Model to use. Default: grok-3'),
+    model: z.string().optional().describe('Model to use. Default: grok-4-1-fast-reasoning'),
     temperature: z.number().optional().describe('Temperature 0-2'),
   },
   async (params: { prompt: string; system?: string; model?: string; temperature?: number }) => {
@@ -113,7 +113,7 @@ server.tool(
       messages.push({ role: 'user', content: prompt });
 
       const response = await grok.chat.completions.create({
-        model: model || 'grok-3',
+        model: model || 'grok-4-1-fast-reasoning',
         messages,
         temperature: temperature ?? 1,
       });
@@ -163,7 +163,7 @@ server.tool(
 
       const startTime = Date.now();
       const response = await grok.chat.completions.create({
-        model: 'grok-3-fast',
+        model: 'grok-4-1-fast-non-reasoning',
         messages,
         temperature: 0.7,
       });
@@ -212,7 +212,7 @@ server.tool(
         : 'You are Grok, an AI with a good sense of humor. Be helpful but feel free to be witty and add personality to your responses.';
 
       const response = await grok.chat.completions.create({
-        model: 'grok-3',
+        model: 'grok-4-1-fast-reasoning',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt },
@@ -266,7 +266,7 @@ server.tool(
       }
 
       const response = await grok.chat.completions.create({
-        model: 'grok-3',
+        model: 'grok-4-1-fast-reasoning',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -316,7 +316,7 @@ server.tool(
       };
 
       const response = await grok.chat.completions.create({
-        model: 'grok-3',
+        model: 'grok-4-1-fast-reasoning',
         messages: [
           { role: 'user', content: `${taskPrompts[task]}\n\nCode:\n\`\`\`\n${code}\n\`\`\`` },
         ],
@@ -367,7 +367,7 @@ server.tool(
       }
 
       const response = await grok.chat.completions.create({
-        model: 'grok-3',
+        model: 'grok-4-1-fast-reasoning',
         messages: [
           { role: 'system', content: 'Think step by step. Break down the problem, analyze each part, and show your reasoning process clearly before arriving at a conclusion.' },
           { role: 'user', content: prompt },
@@ -414,7 +414,7 @@ server.tool(
       const { query } = params;
 
       const response = await grok.chat.completions.create({
-        model: 'grok-3',
+        model: 'grok-4-1-fast-reasoning',
         messages: [
           { role: 'system', content: 'You have access to real-time information. Provide current, up-to-date answers based on the latest available information. If discussing recent events, mention when the information is from if relevant.' },
           { role: 'user', content: query },
@@ -457,13 +457,13 @@ server.tool(
     const models = `
 xAI Grok Models:
 
-1. grok-3 (Latest)
+1. grok-4-1-fast-reasoning (Latest)
    - Most capable model
    - Best reasoning and analysis
    - Real-time X/Twitter information
    - 131K context window
 
-2. grok-3-fast
+2. grok-4-1-fast-non-reasoning
    - Optimized for speed
    - Good for quick tasks
    - Lower latency
@@ -516,7 +516,7 @@ server.tool(
       }
 
       const response = await grok.chat.completions.create({
-        model: 'grok-3',
+        model: 'grok-4-1-fast-reasoning',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt },
@@ -567,7 +567,7 @@ server.tool(
       };
 
       const response = await grok.chat.completions.create({
-        model: 'grok-3-fast',
+        model: 'grok-4-1-fast-non-reasoning',
         messages: [
           { role: 'user', content: `${stylePrompts[style || 'brief']}\n\nText:\n${text}` },
         ],
