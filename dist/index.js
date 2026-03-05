@@ -36,7 +36,7 @@ server.tool('grok_chat', 'Send a chat completion to xAI Grok. Has real-time info
         role: z.enum(['system', 'user', 'assistant']),
         content: z.string(),
     })).describe('Array of messages in the conversation'),
-    model: z.string().optional().describe('Model: grok-4-1-fast-reasoning (default), grok-4-1-fast-non-reasoning, grok-2, grok-2-vision'),
+    model: z.string().optional().describe('Model: grok-4-1-fast-reasoning (default), grok-4-1-fast-non-reasoning, grok-4-0709, grok-3, grok-3-mini'),
     temperature: z.number().optional().describe('Sampling temperature 0-2. Default: 1'),
     max_tokens: z.number().optional().describe('Maximum tokens to generate'),
 }, async (params) => {
@@ -367,6 +367,53 @@ server.tool('grok_realtime', 'Ask Grok about current events. Grok has access to 
     }
 });
 // ============================================
+// VISION TOOL
+// ============================================
+server.tool('grok_vision', 'Analyze images using Grok vision. Pass an image URL (web URL or tweet media) and a question about it.', {
+    image_url: z.string().describe('URL of the image to analyze'),
+    prompt: z.string().describe('What to analyze or ask about the image'),
+    model: z.string().optional().describe('Model to use. Default: grok-4-1-fast-reasoning'),
+}, async (params) => {
+    try {
+        const { image_url, prompt, model } = params;
+        const response = await grok.chat.completions.create({
+            model: model || 'grok-4-1-fast-reasoning',
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'image_url', image_url: { url: image_url } },
+                        { type: 'text', text: prompt },
+                    ],
+                },
+            ],
+            max_tokens: 4096,
+        });
+        const content = response.choices[0]?.message?.content || 'No response';
+        const usage = response.usage;
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `${content}\n\n---\nTokens: ${usage?.prompt_tokens} prompt + ${usage?.completion_tokens} completion = ${usage?.total_tokens} total`,
+                },
+            ],
+        };
+    }
+    catch (error) {
+        const err = error;
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Grok vision error: ${err.message}`,
+                },
+            ],
+            isError: true,
+        };
+    }
+});
+// ============================================
 // UTILITY TOOLS
 // ============================================
 server.tool('grok_models', 'List available Grok models and their capabilities.', {}, async () => {
@@ -376,6 +423,7 @@ xAI Grok Models:
 1. grok-4-1-fast-reasoning (Latest)
    - Most capable model
    - Best reasoning and analysis
+   - Vision/multimodal support (use grok_vision tool)
    - Real-time X/Twitter information
    - 131K context window
 
@@ -384,21 +432,22 @@ xAI Grok Models:
    - Good for quick tasks
    - Lower latency
 
-3. grok-2
+3. grok-4-0709
+   - Previous Grok 4 generation
+   - Vision/multimodal support
+
+4. grok-3 / grok-3-mini
    - Previous generation
    - Still very capable
-   - Good balance of speed/quality
 
-4. grok-2-vision
-   - Vision capabilities
-   - Can analyze images
-   - Multimodal understanding
+5. grok-imagine-image / grok-imagine-image-pro / grok-imagine-video
+   - Image and video generation
 
 Key Features:
 - Real-time information from X (Twitter)
+- Vision/multimodal (images in grok-4 models)
 - Witty, irreverent personality option
 - Strong reasoning capabilities
-- No excessive safety restrictions
 
 API: https://api.x.ai/v1 (OpenAI-compatible)
 Console: https://console.x.ai
